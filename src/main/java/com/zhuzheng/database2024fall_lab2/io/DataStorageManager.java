@@ -4,6 +4,7 @@ import com.zhuzheng.database2024fall_lab2.memory.BufferFrame;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 /**
  * ClassName: DataStorageManager
@@ -27,4 +28,5 @@ public interface DataStorageManager {
     int getUse(int pageId);
     int getNumIOs();
     boolean pageExists(int pageId);
+    int initialPages(List<Integer> pageIdList, List<BufferFrame> frmList);
 }

@@ -183,7 +183,7 @@ public class DataStorageManagerImpl implements DataStorageManager {
             writer.close();
             reader.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return DataStorageManagerConstant.SIZE_OF_CHAR * frm.getNumChars();
     }
@@ -242,5 +242,43 @@ public class DataStorageManagerImpl implements DataStorageManager {
     @Override
     public boolean pageExists(int pageId) {
         return pages[pageId] != DataStorageManagerConstant.PAGE_NOT_EXISTS;
+    }
+
+
+
+    @Override
+    public int initialPages(List<Integer> pageIdList, List<BufferFrame> frmList) {
+        try {
+           writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return DataStorageManagerConstant.WRITE_FAILED;
+        }
+        List<String> lineList = new ArrayList<>();
+        int totalChar = 0;
+        for(int i = 0; i < pageIdList.size(); i++){
+            int pageId = pageIdList.get(i);
+            BufferFrame frm = frmList.get(i);
+            totalChar = totalChar + frm.getNumChars();
+            pages[pageId] = i;
+            incNumPages();
+            used[pageId] = DataStorageManagerConstant.PAGE_USED;
+            lineList.add(new String(frm.getField(), 0, frm.getNumChars()));
+        }
+        for(String line : lineList){
+            try {
+                writer.write(line);
+                writer.newLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return DataStorageManagerConstant.WRITE_FAILED;
+            }
+        }
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return DataStorageManagerConstant.SIZE_OF_CHAR * totalChar;
     }
 }

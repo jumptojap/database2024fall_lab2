@@ -15,6 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 /**
@@ -81,7 +83,7 @@ class DataStorageManagerTest {
         }
     }
     @Test
-    public void testReadAllPages(){
+    public void testSlowReadAllPages(){
         for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++){
             int pageId = i;
             BufferFrame bufferFrame = new BufferFrame();
@@ -89,8 +91,8 @@ class DataStorageManagerTest {
             DataStorageManagerUtil.copyCharArray(pageContext.toCharArray(), bufferFrame.getField());
             bufferFrame.setNumChars(pageContext.length());
             assertEquals(DataStorageManagerConstant.PAGE_NOT_USED, dataStorageManager.getUse(pageId));
-            assertEquals(i, dataStorageManager.getNumPages());
             assertEquals(false, dataStorageManager.pageExists(pageId));
+            assertEquals(i, dataStorageManager.getNumPages());
             assertEquals(2 * i, dataStorageManager.getNumIOs());
             dataStorageManager.writePage(pageId, bufferFrame);
             assertEquals(2 * i + 2, dataStorageManager.getNumIOs());
@@ -109,8 +111,40 @@ class DataStorageManagerTest {
             assertEquals(i + 1 + 2 * DataStorageManagerConstant.MAX_PAGES, dataStorageManager.getNumIOs());
             assertEquals(frame.toString(), bufferFrame.toString());
         }
+    }
+    @Test
+    public void testFastReadAllPages(){
+        List<Integer> pageIdList = new ArrayList<>();
+        List<BufferFrame> frmList = new ArrayList<>();
 
-
-
+        for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++) {
+            int pageId = i;
+            BufferFrame bufferFrame = new BufferFrame();
+            String pageContext = "The context of page" + pageId + " is xxxxx";
+            DataStorageManagerUtil.copyCharArray(pageContext.toCharArray(), bufferFrame.getField());
+            bufferFrame.setNumChars(pageContext.length());
+            pageIdList.add(pageId);
+            frmList.add(bufferFrame);
+            assertEquals(DataStorageManagerConstant.PAGE_NOT_USED, dataStorageManager.getUse(pageId));
+            assertEquals(false, dataStorageManager.pageExists(pageId));
+        }
+        assertEquals(0, dataStorageManager.getNumPages());
+        dataStorageManager.initialPages(pageIdList, frmList);
+        assertEquals(DataStorageManagerConstant.MAX_PAGES, dataStorageManager.getNumPages());
+        for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++){
+            assertEquals(DataStorageManagerConstant.PAGE_USED, dataStorageManager.getUse(i));
+            assertEquals(true, dataStorageManager.pageExists(i));
+        }
+        for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++){
+            int pageId = i;
+            BufferFrame bufferFrame = new BufferFrame();
+            String pageContext = "The context of page" + pageId + " is xxxxx";
+            DataStorageManagerUtil.copyCharArray(pageContext.toCharArray(), bufferFrame.getField());
+            bufferFrame.setNumChars(pageContext.length());
+            assertEquals(i , dataStorageManager.getNumIOs());
+            BufferFrame frame = dataStorageManager.readPage(pageId);
+            assertEquals(i + 1 , dataStorageManager.getNumIOs());
+            assertEquals(frame.toString(), bufferFrame.toString());
+        }
     }
 }
