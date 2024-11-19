@@ -65,22 +65,12 @@ public class DataStorageManagerImpl implements DataStorageManager {
         String filePath = this.getClass().getClassLoader()
                 .getResource(filename).getPath();
         file = new File(filePath);
-//        try {
-//            reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
         log.info("打开文件:{}",file.getName());
         return 0;
     }
 
     @Override
     public int closeFile() {
-//        try {
-//            reader.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         file = null;
         log.info("关闭文件");
         return 0;
@@ -97,7 +87,6 @@ public class DataStorageManagerImpl implements DataStorageManager {
         numIOs++;
         try {
             reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-            //reader.mark(DataStorageManagerConstant.IO_BUFFER_SIZE);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -140,12 +129,6 @@ public class DataStorageManagerImpl implements DataStorageManager {
             e.printStackTrace();
             return DataStorageManagerConstant.WRITE_FAILED;
         }
-//        try {
-//            reader.mark(DataStorageManagerConstant.IO_BUFFER_SIZE);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return DataStorageManagerConstant.WRITE_FAILED;
-//        }
         List<String> lineList = null;
         try {
             numIOs++;

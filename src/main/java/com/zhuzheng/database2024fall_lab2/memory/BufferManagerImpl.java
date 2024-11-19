@@ -171,7 +171,7 @@ public class BufferManagerImpl implements BufferManager{
             BufferControlBlock bufferControlBlock = fixPage(pageId);
             BufferFrame targetFrame = bufferFrames[bufferControlBlock.getFrameId()];
             //根据实验要求，可以把写入内容定死
-            String pageContent = "The content of page" + pageId + "is version0";
+            String pageContent = "The content of page" + (pageId + 1) + " is version0";
             BufferFrame sourceFrame = BufferFrame.builder()
                     .field(pageContent.toCharArray())
                     .numChars(pageContent.length())
@@ -238,7 +238,7 @@ public class BufferManagerImpl implements BufferManager{
         for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++) {
             int pageId = i;
             BufferFrame bufferFrame = new BufferFrame();
-            String pageContext = "The content of page" + pageId + "is version0";
+            String pageContext = "The content of page" + (pageId + 1) + " is version0";
             DataStorageManagerUtil.copyCharArray(pageContext.toCharArray(), bufferFrame.getField());
             bufferFrame.setNumChars(pageContext.length());
             pageIdList.add(pageId);
