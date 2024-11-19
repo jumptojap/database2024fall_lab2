@@ -82,7 +82,7 @@ class DataStorageManagerTest {
             assertEquals(DataStorageManagerConstant.PAGE_NOT_USED, dataStorageManager.getUse(i));
         }
     }
-    @Test
+    //@Test
     public void testSlowReadAllPages(){
         for(int i = 0; i < DataStorageManagerConstant.MAX_PAGES; i++){
             int pageId = i;

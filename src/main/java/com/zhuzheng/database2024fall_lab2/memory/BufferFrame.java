@@ -1,8 +1,7 @@
 package com.zhuzheng.database2024fall_lab2.memory;
 
 import com.zhuzheng.database2024fall_lab2.constant.BufferFrameConstant;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.Arrays;
 
@@ -16,7 +15,11 @@ import java.util.Arrays;
  * Version: v1.0
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BufferFrame {
+
     private char[] field = new char[BufferFrameConstant.FRAME_SIZE];
     private int numChars = 0;
 
@@ -26,5 +29,12 @@ public class BufferFrame {
                 "field=" + new String(field, 0, numChars) +
                 ", numChars=" + numChars +
                 '}';
+    }
+
+    /**
+     * 保证frame的干净，逻辑上清除frame的内容
+     */
+    public void clean(){
+        numChars = 0;
     }
 }

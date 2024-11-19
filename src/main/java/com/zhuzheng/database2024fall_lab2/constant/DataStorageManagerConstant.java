@@ -11,7 +11,7 @@ package com.zhuzheng.database2024fall_lab2.constant;
  */
 public class DataStorageManagerConstant {
     public static final String FILE_NAME = "data.dbf";
-    public static final int MAX_PAGES = 50000;
+    public static final int MAX_PAGES = 5000;
     public static final int PAGE_NOT_EXISTS = -1;
     public static final int PAGE_NOT_USED = 0;
     public static final int PAGE_USED = 1;
