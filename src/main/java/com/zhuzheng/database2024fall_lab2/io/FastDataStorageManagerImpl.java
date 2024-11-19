@@ -3,7 +3,6 @@ package com.zhuzheng.database2024fall_lab2.io;
 import com.zhuzheng.database2024fall_lab2.constant.DataStorageManagerConstant;
 import com.zhuzheng.database2024fall_lab2.memory.BufferFrame;
 import com.zhuzheng.database2024fall_lab2.util.DataStorageManagerUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,19 +21,20 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class DataStorageManagerImpl implements DataStorageManager {
+public class FastDataStorageManagerImpl implements DataStorageManager {
     private BufferedReader reader;
     private BufferedWriter writer;
     private File file;
     private int numPages;
     private int numIOs;
+    private List<String> dataInMemory;
     /**
      * int数组pages代表基页，Index代表数据页的页号
      * pages[index]中记录了第index + 1页中的数据被存储在了data.dbf文件的第几行
      */
     private int[] pages;
     private int[] used;
-    public DataStorageManagerImpl() {
+    public FastDataStorageManagerImpl() {
         log.info("DataStorageManager初始化...");
         openFile(DataStorageManagerConstant.FILE_NAME);
         pages = new int[DataStorageManagerConstant.MAX_PAGES];
@@ -52,8 +52,8 @@ public class DataStorageManagerImpl implements DataStorageManager {
         }
         numIOs = 0;
         numPages = 0;
+        dataInMemory = new ArrayList<>();
     }
-
 
     @Override
     public void openFile(String filename){
@@ -64,9 +64,16 @@ public class DataStorageManagerImpl implements DataStorageManager {
     }
 
     @Override
-    public void closeFile() {
-        file = null;
+    public void closeFile() throws IOException {
+
         log.info("关闭文件");
+        writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
+        for(int i = 0; i < dataInMemory.size(); i++){
+            writer.write(dataInMemory.get(i));
+            writer.newLine();
+        }
+        writer.close();
+        file = null;
     }
 
     @Override
@@ -78,13 +85,7 @@ public class DataStorageManagerImpl implements DataStorageManager {
         }
         //根据页号从data.dbf中读取数据页，算作一次IO
         numIOs++;
-        reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-        //定位数据页在data.dbf文件中的前一行，方便读取
-        seek(pages[pageId], DataStorageManagerConstant.POS_START);
-
-        String lineContent = null;
-        lineContent = reader.readLine();
-        reader.close();
+        String lineContent = dataInMemory.get(pageId);
         BufferFrame bufferFrame = new BufferFrame();
         DataStorageManagerUtil.copyCharArray(lineContent.toCharArray(),
                 bufferFrame.getField());
@@ -95,43 +96,24 @@ public class DataStorageManagerImpl implements DataStorageManager {
 
     @Override
     public void writePage(int pageId, BufferFrame frm) throws IOException {
-        reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
         numIOs++;
-        List<String> lineList = DataStorageManagerUtil.readAll(reader);
         if(!pageExists(pageId)){
-            pages[pageId] = lineList.size();
+            pages[pageId] = dataInMemory.size();
             incNumPages();
-            lineList.add(new String(frm.getField(), 0, frm.getNumChars()));
+            dataInMemory.add(new String(frm.getField(), 0, frm.getNumChars()));
         }else{
-            lineList.set(pages[pageId], new String(frm.getField(), 0, frm.getNumChars()));
+            dataInMemory.set(pages[pageId], new String(frm.getField(), 0, frm.getNumChars()));
         }
         used[pageId] = DataStorageManagerConstant.PAGE_USED;
-
-        writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
         numIOs++;
-        for(String line : lineList){
-            writer.write(line);
-            writer.newLine();
-        }
-        writer.close();
-        reader.close();
+
     }
+
+
 
     @Override
     public void seek(int offset, int pos) throws IOException {
-        int targetLine = offset + pos;
-        int currentLine = 0;
-        if(currentLine == targetLine){
-            return;
-        }
-        String lineContent = null;
 
-        while((lineContent = reader.readLine()) != null){
-            currentLine++;
-            if(currentLine == targetLine){
-                return;
-            }
-        }
     }
 
     @Override
@@ -173,8 +155,7 @@ public class DataStorageManagerImpl implements DataStorageManager {
 
     @Override
     public void initialPages(List<Integer> pageIdList, List<BufferFrame> frmList) throws IOException {
-        writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-        List<String> lineList = new ArrayList<>();
+//        writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
         int totalChar = 0;
         for(int i = 0; i < pageIdList.size(); i++){
             int pageId = pageIdList.get(i);
@@ -183,12 +164,7 @@ public class DataStorageManagerImpl implements DataStorageManager {
             pages[pageId] = i;
             incNumPages();
             used[pageId] = DataStorageManagerConstant.PAGE_USED;
-            lineList.add(new String(frm.getField(), 0, frm.getNumChars()));
+            dataInMemory.add(new String(frm.getField(), 0, frm.getNumChars()));
         }
-        for(String line : lineList){
-            writer.write(line);
-            writer.newLine();
-        }
-        writer.close();
     }
 }

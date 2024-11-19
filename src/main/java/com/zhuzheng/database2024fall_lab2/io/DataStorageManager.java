@@ -17,8 +17,8 @@ import java.util.List;
  * Version: v1.0
  */
 public interface DataStorageManager {
-    int openFile(String filename);
-    int closeFile();
+    void openFile(String filename);
+    void closeFile() throws IOException;
     BufferFrame readPage(int pageId) throws IOException;
     void writePage(int pageId, BufferFrame frm) throws IOException;
     void seek(int offset, int pos) throws IOException;
@@ -29,5 +29,5 @@ public interface DataStorageManager {
     int getUse(int pageId);
     int getNumIOs();
     boolean pageExists(int pageId);
-    int initialPages(List<Integer> pageIdList, List<BufferFrame> frmList);
+    void initialPages(List<Integer> pageIdList, List<BufferFrame> frmList) throws IOException;
 }

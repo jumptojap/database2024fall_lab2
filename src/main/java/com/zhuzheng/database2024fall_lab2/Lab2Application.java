@@ -40,18 +40,14 @@ public class Lab2Application {
         ApplicationContext context = SpringApplication.run(Lab2Application.class, args);
         BufferManager bufferManager = context.getBean(BufferManager.class);
         List<String> traceList = null;
-        try {
-            init(bufferManager);
-            traceList = read(traceFileName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        init(bufferManager);
+        traceList = read(traceFileName);
         for(int i = 0; i < traceList.size(); i++){
             String traceLine = traceList.get(i);
             int index = traceLine.indexOf(",");
             Integer operator = Integer.parseInt(traceLine.substring(0, index));
             Integer pageId = Integer.parseInt(traceLine.substring(index + 1)) - 1;
-            //log.info("开始处理第{}条trace:{}", i + 1, traceLine);
+            log.info("开始处理第{}条trace:{}", i + 1, traceLine);
             if(operator == 0){
                 //0代表read
                 bufferManager.read(pageId);
@@ -61,14 +57,14 @@ public class Lab2Application {
             }
         }
         bufferManager.writeDirtys();
+        bufferManager.close();
         long end = System.currentTimeMillis(); // 结束时间
         long elapsedMillis = end - start; // 计算耗时
 
         // 转换为分钟和秒
         long seconds = (elapsedMillis / 1000) % 60;
         long minutes = (elapsedMillis / 1000) / 60;
-
-        log.info("运行时间: {} 分 {} 秒%n", minutes, seconds);
+        log.info("运行时间: {} 分 {} 秒", minutes, seconds);
         log.info("扫描完该trace文件后，一共进行了{}次IO", bufferManager.numIOs());
     }
 

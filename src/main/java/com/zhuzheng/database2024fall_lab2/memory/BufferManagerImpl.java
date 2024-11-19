@@ -5,10 +5,12 @@ import com.zhuzheng.database2024fall_lab2.constant.BufferFrameConstant;
 import com.zhuzheng.database2024fall_lab2.constant.BufferManagerConstant;
 import com.zhuzheng.database2024fall_lab2.constant.DataStorageManagerConstant;
 import com.zhuzheng.database2024fall_lab2.io.DataStorageManager;
+import com.zhuzheng.database2024fall_lab2.io.DataStorageManagerImpl;
 import com.zhuzheng.database2024fall_lab2.util.BufferFrameUtil;
 import com.zhuzheng.database2024fall_lab2.util.DataStorageManagerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.Map;
 @Slf4j
 public class BufferManagerImpl implements BufferManager{
     @Autowired
+    @Qualifier("fastDataStorageManagerImpl")
+    //@Qualifier("dataStorageManagerImpl")
     private DataStorageManager dataStorageManager;
     //frame列表，容量为1024，可以通过frameId从列表中取出对应frame
     private BufferFrame[] bufferFrames;
@@ -232,7 +236,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public void initialPages() {
+    public void initialPages() throws IOException {
         List<Integer> pageIdList = new ArrayList<>();
         List<BufferFrame> frmList = new ArrayList<>();
 
@@ -246,5 +250,10 @@ public class BufferManagerImpl implements BufferManager{
             frmList.add(bufferFrame);
         }
         dataStorageManager.initialPages(pageIdList, frmList);
+    }
+
+    @Override
+    public void close() throws IOException {
+        dataStorageManager.closeFile();
     }
 }

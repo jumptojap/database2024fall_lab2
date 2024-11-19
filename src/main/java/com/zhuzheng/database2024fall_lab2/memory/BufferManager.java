@@ -47,5 +47,6 @@ public interface BufferManager {
      * @return
      */
     int hash(int pageId);
-    void initialPages();
+    void initialPages() throws IOException;
+    void close() throws IOException;
 }
