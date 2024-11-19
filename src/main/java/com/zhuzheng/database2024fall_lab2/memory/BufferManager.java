@@ -1,5 +1,7 @@
 package com.zhuzheng.database2024fall_lab2.memory;
 
+import java.io.IOException;
+
 /**
  * ClassName: BufferManager
  * Package: com.zhuzheng.database2024fall_lab2.memory
@@ -19,10 +21,10 @@ public interface BufferManager {
     /**
      * 运行结束时统一写回脏页面
      */
-    void writeDirtys();
-    void writeDity(int pageId);
-    String read(int pageId);
-    void write(int pageId);
+    void writeDirtys() throws IOException;
+    void writeDity(int pageId) throws IOException;
+    String read(int pageId) throws IOException;
+    void write(int pageId) throws IOException;
     int numFreeFrames();
 
     /**
@@ -37,7 +39,7 @@ public interface BufferManager {
      * @param pageId
      * @return
      */
-    void unFixPage(int pageId);
+    void unFixPage(int pageId) throws IOException;
 
     /**
      * 要建立page和frame的映射关系时，根据pageId为frameId分配一个空闲frame

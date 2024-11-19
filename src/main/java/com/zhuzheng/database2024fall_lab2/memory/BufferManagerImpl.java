@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -98,7 +99,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public void writeDirtys() {
+    public void writeDirtys() throws IOException {
         for(BufferControlBlock bufferControlBlock = head.next;
         bufferControlBlock != tail; bufferControlBlock = bufferControlBlock.next){
             if(bufferControlBlock.getDirty() == BufferControlBlockConstant.DIRTY){
@@ -112,7 +113,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public void writeDity(int pageId) {
+    public void writeDity(int pageId) throws IOException {
         BufferControlBlock bufferControlBlock = map.get(pageId);
         Integer frameId = bufferControlBlock.getFrameId();
         BufferFrame bufferFrame = bufferFrames[frameId];
@@ -122,7 +123,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public String read(int pageId) {
+    public String read(int pageId) throws IOException {
         if(map.containsKey(pageId)){
             BufferControlBlock bufferControlBlock = map.get(pageId);
             int frameId = bufferControlBlock.getFrameId();
@@ -148,7 +149,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public void write(int pageId) {
+    public void write(int pageId) throws IOException {
         if(map.containsKey(pageId)){
             BufferControlBlock bufferControlBlock = map.get(pageId);
             int frameId = bufferControlBlock.getFrameId();
@@ -205,7 +206,7 @@ public class BufferManagerImpl implements BufferManager{
     }
 
     @Override
-    public void unFixPage(int pageId) {
+    public void unFixPage(int pageId) throws IOException {
         BufferControlBlock bufferControlBlock = map.get(pageId);
         Integer frameId = bufferControlBlock.getFrameId();
         BufferFrame bufferFrame = bufferFrames[frameId];

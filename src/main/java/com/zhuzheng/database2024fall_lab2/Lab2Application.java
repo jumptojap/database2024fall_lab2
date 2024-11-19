@@ -35,7 +35,7 @@ public class Lab2Application {
         }
         return lineList;
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis(); // 开始时间
         ApplicationContext context = SpringApplication.run(Lab2Application.class, args);
         BufferManager bufferManager = context.getBean(BufferManager.class);

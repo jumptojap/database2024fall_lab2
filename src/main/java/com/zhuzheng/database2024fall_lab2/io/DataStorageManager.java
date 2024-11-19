@@ -4,6 +4,7 @@ import com.zhuzheng.database2024fall_lab2.memory.BufferFrame;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -18,9 +19,9 @@ import java.util.List;
 public interface DataStorageManager {
     int openFile(String filename);
     int closeFile();
-    BufferFrame readPage(int pageId);
-    int writePage(int pageId, BufferFrame frm);
-    int seek(int offset, int pos);
+    BufferFrame readPage(int pageId) throws IOException;
+    void writePage(int pageId, BufferFrame frm) throws IOException;
+    void seek(int offset, int pos) throws IOException;
     File getFile();
     void incNumPages();
     int getNumPages();

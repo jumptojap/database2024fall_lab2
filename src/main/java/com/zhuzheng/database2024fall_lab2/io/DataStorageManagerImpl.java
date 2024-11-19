@@ -20,8 +20,8 @@ import java.util.List;
  * @Create: 2024/11/17 - 16:00
  * Version: v1.0
  */
-@Component
 @Slf4j
+@Component
 public class DataStorageManagerImpl implements DataStorageManager {
     private BufferedReader reader;
     private BufferedWriter writer;
@@ -77,67 +77,34 @@ public class DataStorageManagerImpl implements DataStorageManager {
     }
 
     @Override
-    public BufferFrame readPage(int pageId) {
+    public BufferFrame readPage(int pageId) throws IOException {
         if(!pageExists(pageId)){
-            // TODO 查询基页算作一次IO，存疑？
+            //TODO 查询基页算作一次IO，存疑？
             //numIOs++;
             return null;
         }
         //根据页号从data.dbf中读取数据页，算作一次IO
         numIOs++;
-        try {
-            reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
         //定位数据页在data.dbf文件中的前一行，方便读取
-        int seek = seek(pages[pageId], DataStorageManagerConstant.POS_START);
-        if(seek == DataStorageManagerConstant.LINE_FIND_IN_FILE){
-            String lineContent = null;
-            try {
-                lineContent = reader.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-            try {
-                reader.close();
-                //reader.reset();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-            BufferFrame bufferFrame = new BufferFrame();
-            DataStorageManagerUtil.copyCharArray(lineContent.toCharArray(),
-                    bufferFrame.getField());
-            bufferFrame.setNumChars(lineContent.length());
+        seek(pages[pageId], DataStorageManagerConstant.POS_START);
 
-            return bufferFrame;
-        }
-        return null;
+        String lineContent = null;
+        lineContent = reader.readLine();
+        reader.close();
+        BufferFrame bufferFrame = new BufferFrame();
+        DataStorageManagerUtil.copyCharArray(lineContent.toCharArray(),
+                bufferFrame.getField());
+        bufferFrame.setNumChars(lineContent.length());
+        return bufferFrame;
+
     }
 
     @Override
-    public int writePage(int pageId, BufferFrame frm) {
-        try {
-            reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return DataStorageManagerConstant.WRITE_FAILED;
-        }
-        List<String> lineList = null;
-        try {
-            numIOs++;
-            lineList = DataStorageManagerUtil.readAll(reader);
-            //reader.reset();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return DataStorageManagerConstant.WRITE_FAILED;
-        }
+    public void writePage(int pageId, BufferFrame frm) throws IOException {
+        reader = new BufferedReader(new FileReader(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
+        numIOs++;
+        List<String> lineList = DataStorageManagerUtil.readAll(reader);
         if(!pageExists(pageId)){
             pages[pageId] = lineList.size();
             incNumPages();
@@ -146,50 +113,32 @@ public class DataStorageManagerImpl implements DataStorageManager {
             lineList.set(pages[pageId], new String(frm.getField(), 0, frm.getNumChars()));
         }
         used[pageId] = DataStorageManagerConstant.PAGE_USED;
-        try {
-            writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return DataStorageManagerConstant.WRITE_FAILED;
+
+        writer = new BufferedWriter(new FileWriter(file), DataStorageManagerConstant.IO_BUFFER_SIZE);
+        numIOs++;
+        for(String line : lineList){
+            writer.write(line);
+            writer.newLine();
         }
-        try {
-            numIOs++;
-            for(String line : lineList){
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return DataStorageManagerConstant.WRITE_FAILED;
-        }
-        try {
-            writer.close();
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return DataStorageManagerConstant.SIZE_OF_CHAR * frm.getNumChars();
+        writer.close();
+        reader.close();
     }
 
     @Override
-    public int seek(int offset, int pos) {
+    public void seek(int offset, int pos) throws IOException {
         int targetLine = offset + pos;
         int currentLine = 0;
         if(currentLine == targetLine){
-            return DataStorageManagerConstant.LINE_FIND_IN_FILE;
+            return;
         }
         String lineContent = null;
-        try {
-            while((lineContent = reader.readLine()) != null){
-                currentLine++;
-                if(currentLine == targetLine){
-                    return DataStorageManagerConstant.LINE_FIND_IN_FILE;
-                }
+
+        while((lineContent = reader.readLine()) != null){
+            currentLine++;
+            if(currentLine == targetLine){
+                return;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return DataStorageManagerConstant.LINE_NOT_FIND_IN_FILE;
     }
 
     @Override
